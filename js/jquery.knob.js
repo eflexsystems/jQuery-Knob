@@ -154,7 +154,7 @@
                     s.i[k] = $this;
                     s.v[k] = s.o.parse($this.val());
 
-                    $this.bind(
+                    $this.on(
                         'change blur',
                         function () {
                             var val = {};
@@ -170,7 +170,7 @@
                 this.i = this.$;
                 this.v = this.o.parse(this.$.val());
                 this.v === '' && (this.v = this.o.min);
-                this.$.bind(
+                this.$.on(
                     'change blur',
                     function () {
                         s.val(s._validate(s.o.parse(s.$.val())));
@@ -240,9 +240,9 @@
 
             // binds configure event
             this.$
-                .bind("configure", cf)
+                .on("configure", cf)
                 .parent()
-                .bind("configure", cf);
+                .on("configure", cf);
 
             // finalize init
             this._listen()
@@ -336,11 +336,11 @@
 
             // Touch events listeners
             k.c.d
-                .bind("touchmove.k", touchMove)
-                .bind(
+                .on("touchmove.k", touchMove)
+                .on(
                     "touchend.k",
                     function () {
-                        k.c.d.unbind('touchmove.k touchend.k');
+                        k.c.d.off('touchmove.k touchend.k');
                         s.val(s.cv);
                     }
                 );
@@ -365,13 +365,13 @@
 
             // Mouse events listeners
             k.c.d
-                .bind("mousemove.k", mouseMove)
-                .bind(
+                .on("mousemove.k", mouseMove)
+                .on(
                     // Escape key cancel current change
                     "keyup.k",
                     function (e) {
                         if (e.keyCode === 27) {
-                            k.c.d.unbind("mouseup.k mousemove.k keyup.k");
+                            k.c.d.off("mouseup.k mousemove.k keyup.k");
 
                             if (s.eH && s.eH() === false)
                                 return;
@@ -380,10 +380,10 @@
                         }
                     }
                 )
-                .bind(
+                .on(
                     "mouseup.k",
                     function (e) {
-                        k.c.d.unbind('mousemove.k mouseup.k keyup.k');
+                        k.c.d.off('mousemove.k mouseup.k keyup.k');
                         s.val(s.cv);
                     }
                 );
@@ -402,14 +402,14 @@
         this._listen = function () {
             if (!this.o.readOnly) {
                 this.$c
-                    .bind(
+                    .on(
                         "mousedown",
                         function (e) {
                             e.preventDefault();
                             s._xy()._mouse(e);
                         }
                     )
-                    .bind(
+                    .on(
                         "touchstart",
                         function (e) {
                             e.preventDefault();
@@ -423,7 +423,7 @@
             }
 
             if (this.relative) {
-                $(window).resize(function() {
+                $(window).on('resize.jqueryKnob', function() {
                     s._carve().init();
                     s._draw();
                 });
@@ -487,8 +487,8 @@
                 t[i] = f[i];
             }
         };
-    };
 
+    };
 
     /**
      * k.Dial
@@ -611,7 +611,7 @@
                 };
 
             this.$
-                .bind(
+                .on(
                     "keydown",
                     function (e) {
                         var kc = e.keyCode;
@@ -650,7 +650,7 @@
                         }
                     }
                 )
-                .bind(
+                .on(
                     "keyup",
                     function (e) {
                         if (isNaN(kval)) {
@@ -668,8 +668,8 @@
                     }
                 );
 
-            this.$c.bind("mousewheel DOMMouseScroll", mw);
-            this.$.bind("mousewheel DOMMouseScroll", mw);
+            this.$c.on("mousewheel DOMMouseScroll", mw);
+            this.$.on("mousewheel DOMMouseScroll", mw);
         };
 
         this.init = function () {
@@ -789,17 +789,49 @@
         this.cancel = function () {
             this.val(this.v);
         };
+
+        this.destroy = function () {
+            $(document).off('.k');
+            $(window).off('.jqueryKnob');
+            this.$.off('change blur configure keydown keyup mousewheel DOMMouseScroll');
+            this.$c.off('mousedown touchstart mousewheel DOMMouseScroll');
+            this.$.parent().off('configure');
+            this.o = null;
+            this.$ = null;
+            this.i = null;
+            this.g = null;
+            this.$c = null;
+            this.c = null;
+            this.dH = null;
+            this.cH = null;
+            this.eH = null;
+            this.rH = null;
+            this.$div = null;
+            this.o = null;
+            this.$ = null;
+        }
+
     };
 
     $.fn.dial = $.fn.knob = function (o) {
-        return this.each(
-            function () {
-                var d = new k.Dial();
-                d.o = o;
-                d.$ = $(this);
-                d.run();
-            }
-        ).parent();
+        let dials = [];
+
+        let parent = this.each(() => {
+            let d = new k.Dial();
+            d.o = o;
+            d.$ = $(this);
+            d.run();
+            dials.push(d);
+        }).parent();
+
+        parent.destroy = function() {
+            dials.forEach((dial) => {
+                dial.destroy();
+            });
+            dials = null;
+        };
+
+        return parent;
     };
 
 }));

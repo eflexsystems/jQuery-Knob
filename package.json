@@ -1,8 +1,8 @@
 {
-  "name": "jquery-knob",
+  "name": "@eflexsystems/jquery-knob",
   "version": "1.2.13",
   "description": "Nice, downward compatible, touchable, jQuery dial",
-  "main": "dist/jquery.knob.min.js",
+  "main": "js/jquery.knob.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
